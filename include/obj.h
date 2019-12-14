@@ -6,7 +6,7 @@
 /*   By: abara <banthony@student.42.fr>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/12/12 12:08:07 by abara             #+#    #+#             */
-/*   Updated: 2019/12/13 17:55:29 by abara            ###   ########.fr       */
+/*   Updated: 2019/12/14 02:16:46 by abara            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,33 +17,70 @@
 #include "libft.h"
 #include <string.h>
 
-typedef enum	e_ogrammar
+# define OBJ_MIN_LINE_LEN sizeof("s 0\n") - 1
+
+typedef enum	e_oelm
 {
-	V_GRM,
-	VT_GRM,
-	VN_GRM,
-	VP_GRM,
-	F_GRM,
+	V,
+	VT,
+	VN,
+	VP,
+	FACE,
 	MTLLIB,
 	USEMTL,
 	NAME,
 	G_NAME,
-	SS,
-	NB_GRM,
-}				t_ogrammar;
+	SG,
+	NB_OELM,
+}				t_oelm;
+
+# define NB_VERTEX_ARRAY VP + 1
+
+# define ACSET_MAX 3
+
+typedef int	(*t_grm_check)(char *line);
 
 typedef struct	s_grm_entry
 {
 	const char	*grm;
 	const char	*comp;
 	size_t		len;
+	int			acset[ACSET_MAX];
 }				t_grm_entry;
+
+typedef struct	s_vertex
+{
+	float		x;
+	float		y;
+	float		z;
+	float		w;
+	int			color;
+}				t_vertex;
+
+typedef struct	s_vector
+{
+	float		x;
+	float		y;
+	float		z;
+}				t_vector;
+
+typedef struct	s_element
+{
+	char		*gname;
+	int			smoothing_grp;
+	t_list		*faces;
+}				t_element;
 
 typedef struct	s_obj
 {
-	size_t		size[NB_GRM];
+	char		*name;
+	size_t		size[NB_OELM];
 	t_list		*mtllib;
-	t_list		*faces;
+	t_vertex	*vertex;
+	t_vector	*textures;
+	t_vector	*normals;
+	t_vector	*vparam;
+	t_element	*elements;
 }				t_obj;
 
 /*
@@ -56,14 +93,20 @@ t_bool			load_obj(int ac, char **av, t_obj *obj);
 **	obj_parse
 */
 int				preprocess_obj(char *line, void *data);
+int				extract_data_obj(char *line, void *data);
 
 /*
 **	obj_utils
 */
+void			display_vertex(t_obj obj);
 void			display_stat_obj(t_obj obj);
-char			*get_grm_description(t_ogrammar grm);
+char			*get_grm_description(t_oelm grm);
 void			free_obj(t_obj *obj);
 
+/*
+**	obj_check
+*/
+int				grammar_argc_check(char *line, const int ac_set[ACSET_MAX]);
 
 /*
 **	OBJ file format content:

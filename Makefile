@@ -6,7 +6,7 @@
 #    By: abara <banthony@student.42.fr>             +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/12/12 10:49:57 by abara             #+#    #+#              #
-#    Updated: 2019/12/13 17:58:41 by abara            ###   ########.fr        #
+#    Updated: 2019/12/14 00:17:16 by abara            ###   ########.fr        #
 #                                                                              #
 #******************************************************************************#
 
@@ -23,6 +23,7 @@ HEADER_FILE += scop.h
 SRC_FILE +=	main.c
 SRC_FILE +=	obj.c
 SRC_FILE +=	obj_parse.c
+SRC_FILE +=	obj_check.c
 SRC_FILE +=	obj_utils.c
 
 SRC = $(SRC_FILE:%c=$(PATH_SRC)%c)
