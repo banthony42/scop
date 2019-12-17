@@ -6,7 +6,7 @@
 /*   By: abara <banthony@student.42.fr>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/12/12 12:08:07 by abara             #+#    #+#             */
-/*   Updated: 2019/12/14 02:16:46 by abara            ###   ########.fr       */
+/*   Updated: 2019/12/17 16:03:41 by abara            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 #include "libft.h"
 #include <string.h>
 
-# define OBJ_MIN_LINE_LEN sizeof("s 0\n") - 1
+# define OBJ_MIN_LINE_LEN sizeof("s 0") - 1
 
 typedef enum	e_oelm
 {
@@ -64,9 +64,15 @@ typedef struct	s_vector
 	float		z;
 }				t_vector;
 
+typedef struct	s_face
+{
+	int			v[4][3];
+}				t_face;
+
 typedef struct	s_element
 {
 	char		*gname;
+	char		*mtl;
 	int			smoothing_grp;
 	t_list		*faces;
 }				t_element;
@@ -75,12 +81,12 @@ typedef struct	s_obj
 {
 	char		*name;
 	size_t		size[NB_OELM];
+	size_t		vertex_off[NB_VERTEX_ARRAY];
 	t_list		*mtllib;
-	t_vertex	*vertex;
-	t_vector	*textures;
-	t_vector	*normals;
-	t_vector	*vparam;
-	t_element	*elements;
+	t_vertex	*g_vertex;
+	t_vector	*vertex;
+	t_list		*elements;
+	t_bool		flag;
 }				t_obj;
 
 /*

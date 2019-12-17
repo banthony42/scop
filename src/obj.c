@@ -6,7 +6,7 @@
 /*   By: abara <banthony@student.42.fr>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/12/12 12:08:47 by abara             #+#    #+#             */
-/*   Updated: 2019/12/14 03:15:01 by abara            ###   ########.fr       */
+/*   Updated: 2019/12/17 14:42:50 by abara            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,31 +18,26 @@
 
 static	t_bool allocate_vertex(t_obj *obj)
 {
-	t_oelm	index;
-	int		error;
-	void	**array_ptr[NB_VERTEX_ARRAY];
+	size_t	vertex_size;
 
-	array_ptr[V] = (void**)&obj->vertex;
-	array_ptr[VT] = (void**)&obj->textures;
-	array_ptr[VN] = (void**)&obj->normals;
-	array_ptr[VP] = (void**)&obj->vparam;
-	error = 0;
-	index = V;
-	while (index < NB_VERTEX_ARRAY)
+	obj->g_vertex = ft_memalloc(sizeof(t_vertex)* obj->size[V]);
+	if (!obj->g_vertex)
 	{
-		if (obj->size[index])
-		{
-			if (index == V)
-				*array_ptr[index] = ft_memalloc(sizeof(t_vertex)* obj->size[index]);
-			else
-				*array_ptr[index] = ft_memalloc(sizeof(t_vector)* obj->size[index]);
-			error |= (!*array_ptr[index]) ? (1 << index) : (0);
-		}
-		index++;
-	}
-	if (error)
 		ft_putendlcol(SH_RED, "Error during data allocation.");
-	return (error == 0);
+		return (false);
+	}
+	vertex_size = obj->size[VT] + obj->size[VN] + obj->size[VP];
+	if (!vertex_size)
+		return (true);
+	obj->vertex = ft_memalloc(sizeof(t_vector)* vertex_size);
+	if (!obj->vertex)
+	{
+		ft_putendlcol(SH_RED, "Error during data allocation.");
+		return (false);
+	}
+	obj->vertex_off[VN] = obj->size[VT];
+	obj->vertex_off[VP] = obj->size[VT] + obj->size[VN];
+	return (true);
 }
 
 t_bool	parse_obj(char *data, off_t size, t_obj *obj)

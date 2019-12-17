@@ -6,7 +6,7 @@
 /*   By: abara <banthony@student.42.fr>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/12/13 17:46:24 by abara             #+#    #+#             */
-/*   Updated: 2019/12/14 03:16:50 by abara            ###   ########.fr       */
+/*   Updated: 2019/12/17 16:19:29 by abara            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,33 +144,121 @@ int preprocess_obj(char *line, void *data)
 
 static t_bool	extract_vertex(t_oelm index, char *line, t_obj *obj)
 {
-	void		**array_ptr[NB_VERTEX_ARRAY];
 	t_vertex	vert = {0};
 	t_vector	vec = {0};
 	static int	vi[4] = {0};
+	void		*dest;
 
-	array_ptr[V] = (void**)&obj->vertex;
-	array_ptr[VT] = (void**)&obj->textures;
-	array_ptr[VN] = (void**)&obj->normals;
-	array_ptr[VP] = (void**)&obj->vparam;
-	if (ft_strnequ(line, g_ogrammar[V].grm, g_ogrammar[V].len))
+	if (!obj || !line)
+		return (false);
+	if (index == V)
 	{
+		// TODO make function to handle differen format fot geometric vertex
 		sscanf(&line[g_ogrammar[index].len], "%f%f%f", &vert.x, &vert.y, &vert.z);
-		ft_memcpy(*array_ptr[V] + (vi[V] * sizeof(t_vertex)), &vert, sizeof(vert));
+		dest = obj->g_vertex + vi[V];
+		ft_memcpy(dest, &vert, sizeof(vert));
 		vi[V]++;
 		return (true);
 	}
-	else if (ft_strnequ(line, g_ogrammar[index].grm, g_ogrammar[index].len))
+	else if (index < 4)
 	{
-		if (index < 4)
-		{
-			sscanf(&line[g_ogrammar[index].len], "%f%f%f", &vec.x, &vec.y, &vec.z);
-			ft_memcpy(((t_vector*)(*array_ptr[index])) + vi[index], &vec, sizeof(vec));
-			vi[index]++;
-			return (true);
-		}
+		sscanf(&line[g_ogrammar[index].len], "%f%f%f", &vec.x, &vec.y, &vec.z);
+		dest = (obj->vertex + obj->vertex_off[index]) + vi[index];
+		ft_memcpy(dest, &vec, sizeof(vec));
+		vi[index]++;
+		return (true);
 	}
 	return (false);
+}
+
+static t_bool	create_newelem(t_oelm index, char *line, t_obj *obj)
+{
+	t_element	new;
+	char		*str;
+
+	if (!obj || !line)
+		return (false);
+	if (ft_strlen(line) <= g_ogrammar[index].len)
+		return (false);
+	str = &line[g_ogrammar[index].len];
+ 	ft_memset(&new, 0, sizeof(t_element));
+	// Copy current element to modify it
+	if (obj->elements && obj->flag)
+		ft_memcpy(&new, (ft_lstlast(obj->elements))->content, sizeof(t_element));
+	if (index == G_NAME)
+	{
+		ft_strdel(&new.gname);
+		new.gname = ft_strdup(str);
+	}
+	else if (index == USEMTL)
+	{
+		ft_strdel(&new.mtl);
+		new.mtl = ft_strdup(str);
+	}
+
+	// Create new element (the first)
+	if (!obj->elements && !obj->flag)
+	{
+		obj->elements = ft_lstnew(&new, sizeof(t_element));
+		obj->flag = true;
+	}
+	// Create new element (not the first)
+	else if (obj->elements && !obj->flag)
+	{
+		ft_lstaddback(&obj->elements, ft_lstnew(&new, sizeof(t_element)));
+		obj->flag = true;
+	}
+	// Modify current element
+	else if (obj->elements && obj->flag)
+		ft_memcpy(ft_lstlast(obj->elements)->content, &new, sizeof(t_element));
+	return (true);
+}
+
+// f 1/2/3 4/5/6 7/8/9
+// f 1//3 4//6 7//9
+// f 1 2 3
+static t_bool	add_to_element(char *line, t_obj *obj)
+{
+	t_face		face;
+	t_list		*last;
+	t_element	*element;
+	char		**face_args;
+	int			i;
+
+	if (!obj || !line)
+		return (false);
+	obj->flag = false;
+	last = ft_lstlast(obj->elements);
+	element = (t_element*)last->content;
+	face_args = ft_strsplit(line, ' ');
+	i = 1;
+	ft_memset(&face, 0, sizeof(face));
+	char **sep;
+	int nsep;
+	while(face_args[i])
+	{
+		if (ft_strchr(face_args[i], '/'))
+		{
+			sep = ft_strsplit(face_args[i], '/');
+			// geometric vertex + normal vertex
+			if ((nsep = ft_tablen(sep)) == 2)
+				sscanf(face_args[i], "%d//%d", &face.v[i - 1][V], &face.v[i - 1][VN]);
+			// g. vertex + texture vertex + n. vertex
+			else if (nsep == 3)
+				sscanf(face_args[i], "%d/%d/%d", &face.v[i - 1][V], &face.v[i - 1][VT], &face.v[i - 1][VN]);
+			ft_freetab(sep);
+		}
+		// Only g. vertex
+		else
+			sscanf(face_args[i], "%d", &face.v[i - 1][V]);
+		i++;
+	}
+	ft_freetab(face_args);
+	if (!element->faces)
+		element->faces = ft_lstnew(&face, sizeof(t_face));
+	else
+		ft_lstaddback(&element->faces, ft_lstnew(&face, sizeof(t_face)));
+	return (true);
 }
 
 int	extract_data_obj(char *line, void *data)
@@ -187,15 +275,18 @@ int	extract_data_obj(char *line, void *data)
 	index = V;
 	while (index < NB_OELM)
 	{
-		if (line[0] == 'v')
+		if (ft_strnequ(line, g_ogrammar[index].grm, g_ogrammar[index].len))
 		{
-			if (extract_vertex(index, line, obj))
-				break ;
+			if (index == V || index == VT || index == VN || index == VP)
+				if (extract_vertex(index, line, obj))
+					break ;
+			if (index == G_NAME || index == USEMTL)
+				if (create_newelem(index, line, obj))
+					break;
+			if (index == FACE)
+				if (add_to_element(line, obj))
+					break ;
 		}
-		/*
-		**	Si 'usemtl' / 's' / 'g' creation d'un nouveaux t_element
-		**	Tant que 'f' ajouter la data au dernier element ajouté
-		*/
 		index++;
 	}
 	return (1);
