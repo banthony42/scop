@@ -20,13 +20,13 @@ static	t_bool allocate_vertex(t_obj *obj)
 {
 	size_t	vertex_size;
 
-	obj->g_vertex = ft_memalloc(sizeof(t_vertex)* obj->size[V]);
+	obj->g_vertex = ft_memalloc(sizeof(t_vertex)* obj->size[VERTEX]);
 	if (!obj->g_vertex)
 	{
 		ft_putendlcol(SH_RED, "Error during data allocation.");
 		return (false);
 	}
-	vertex_size = obj->size[VT] + obj->size[VN] + obj->size[VP];
+	vertex_size = obj->size[VERTEX_T] + obj->size[VERTEX_N] + obj->size[VERTEX_P];
 	if (!vertex_size)
 		return (true);
 	obj->vertex = ft_memalloc(sizeof(t_vector)* vertex_size);
@@ -35,8 +35,8 @@ static	t_bool allocate_vertex(t_obj *obj)
 		ft_putendlcol(SH_RED, "Error during data allocation.");
 		return (false);
 	}
-	obj->vertex_off[VN] = obj->size[VT];
-	obj->vertex_off[VP] = obj->size[VT] + obj->size[VN];
+	obj->vertex_offset[VERTEX_N] = obj->size[VERTEX_T];
+	obj->vertex_offset[VERTEX_P] = obj->size[VERTEX_T] + obj->size[VERTEX_N];
 	return (true);
 }
 

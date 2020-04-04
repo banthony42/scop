@@ -14,6 +14,13 @@
 #include "libft.h"
 #include <stdio.h>
 
+/*
+**	This function count the number of word in line, delimited by space.
+**	The number of word / arguments are compare with ac_set array.
+**	If the number of word match with one of integer in ac_set,
+**	the function return true, false otherwise.
+*/
+
 int	grammar_argc_check(char *line, const int ac_set[ACSET_MAX])
 {
 	char	*find;

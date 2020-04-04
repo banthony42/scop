@@ -1,0 +1,34 @@
+********************************************************************************
+
+                                                          :::      ::::::::
+     dev_notes.txt                                      :+:      :+:    :+:
+                                                      +:+ +:+         +:+
+     By: abara <banthony@student.42.fr>             +#+  +:+       +#+
+                                                  +#+#+#+#+#+   +#+
+     Created: 2020/04/04 01:16:57 by abara             #+#    #+#
+     Updated: 2020/04/04 02:48:36 by abara            ###   ########.fr         
+
+********************************************************************************
+
+TEST PARSING:
+	* obj with line beginning by spac could deform the real number of argument.
+	  obj_check.c l.36
+
+	* obj with several name instruction should cause multiple malloc.
+	  obj_parse.c l.122
+
+TODO:
+	* rename g_vertex in obj structure. (geometric_vertex ? + add comment)
+	  obj.h l.76
+
+	* unify all print : printf vs putstr/endl
+	  code base
+
+	* struct face, rename the intern variable + add comment / define. (why array[4][3])
+	  obj.h l.59
+
+	* ensure sscanf is allow
+	  obj_parse_vertex.c l.46
+
+	* understand again obj->flag purpose, and replace / improve / rename / comment !
+	  obj_parse_element.c l.29

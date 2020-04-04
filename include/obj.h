@@ -6,7 +6,7 @@
 /*   By: abara <banthony@student.42.fr>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/12/12 12:08:07 by abara             #+#    #+#             */
-/*   Updated: 2019/12/17 16:03:41 by abara            ###   ########.fr       */
+/*   Updated: 2019/12/19 13:29:02 by abara            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,10 @@
 
 typedef enum	e_oelm
 {
-	V,
-	VT,
-	VN,
-	VP,
+	VERTEX,
+	VERTEX_T,
+	VERTEX_N,
+	VERTEX_P,
 	FACE,
 	MTLLIB,
 	USEMTL,
@@ -34,19 +34,9 @@ typedef enum	e_oelm
 	NB_OELM,
 }				t_oelm;
 
-# define NB_VERTEX_ARRAY VP + 1
+# define NB_VERTEX_ARRAY VERTEX_P + 1
 
 # define ACSET_MAX 3
-
-typedef int	(*t_grm_check)(char *line);
-
-typedef struct	s_grm_entry
-{
-	const char	*grm;
-	const char	*comp;
-	size_t		len;
-	int			acset[ACSET_MAX];
-}				t_grm_entry;
 
 typedef struct	s_vertex
 {
@@ -69,25 +59,36 @@ typedef struct	s_face
 	int			v[4][3];
 }				t_face;
 
-typedef struct	s_element
+typedef struct	s_mesh
 {
 	char		*gname;
 	char		*mtl;
 	int			smoothing_grp;
 	t_list		*faces;
-}				t_element;
+}				t_mesh;
 
 typedef struct	s_obj
 {
 	char		*name;
 	size_t		size[NB_OELM];
-	size_t		vertex_off[NB_VERTEX_ARRAY];
+	size_t		vertex_offset[NB_VERTEX_ARRAY];
 	t_list		*mtllib;
 	t_vertex	*g_vertex;
 	t_vector	*vertex;
-	t_list		*elements;
+	t_list		*meshes;
 	t_bool		flag;
 }				t_obj;
+
+typedef t_bool	(*t_line_parser)(t_oelm index, char *line, t_obj *obj);
+
+typedef struct	s_grm_entry
+{
+	const char		*grm;
+	const char		*comp;
+	size_t			len;
+	int				acset[ACSET_MAX];
+	t_line_parser	parser;
+}				t_grm_entry;
 
 /*
 **	obj
@@ -100,6 +101,15 @@ t_bool			load_obj(int ac, char **av, t_obj *obj);
 */
 int				preprocess_obj(char *line, void *data);
 int				extract_data_obj(char *line, void *data);
+t_grm_entry		get_grmentry(t_oelm index);
+
+/*
+**	obj_parse_function
+*/
+t_bool			geometric_vertex_parse(t_oelm index, char *line, t_obj *obj);
+t_bool			vertex_parse(t_oelm index, char *line, t_obj *obj);
+t_bool			grouping_and_attributes_parse(t_oelm index, char *line, t_obj *obj);
+t_bool			faces_parse(t_oelm index, char *line, t_obj *obj);
 
 /*
 **	obj_utils
